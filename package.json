@@ -4,9 +4,45 @@
   "description": "ProjectOS is a scalable collaborative work management platform combining features of Jira, Slack, and Notion. It includes secure authentication, real-time collaboration (task updates, chat, file sharing), background job handling, notifications, MongoDB, Redis for performance.",
   "license": "ISC",
   "author": "nitinsemwal",
-  "type": "commonjs",
+  "type": "module",
   "main": "App.js",
   "scripts": {
-    "test": "nodemon server.js"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "fomat": "prettier --write .",
+    "start": "nodemon src/Server.js",
+    "prepare": "husky install"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
+    "joi": "^18.0.2",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.2.1",
+    "rate-limit-redis": "^4.3.1",
+    "redis": "^5.11.0",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.4.2",
+    "@commitlint/config-conventional": "^20.4.2",
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.0.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "globals": "^17.3.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "nodemon": "^3.1.14",
+    "prettier": "^3.8.1"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   }
 }
