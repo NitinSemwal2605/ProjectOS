@@ -1,0 +1,12 @@
+{
+  "name": "projectos",
+  "version": "1.0.0",
+  "description": "ProjectOS is a scalable collaborative work management platform combining features of Jira, Slack, and Notion. It includes secure authentication, real-time collaboration (task updates, chat, file sharing), background job handling, notifications, MongoDB, Redis for performance.",
+  "license": "ISC",
+  "author": "nitinsemwal",
+  "type": "commonjs",
+  "main": "App.js",
+  "scripts": {
+    "test": "nodemon server.js"
+  }
+}
