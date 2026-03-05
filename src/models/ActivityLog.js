@@ -32,6 +32,7 @@ const activityLogSchema = new mongoose.Schema(
                     "MESSAGE_DELETED",
                     "MEMBER_ADDED",
                     "MEMBER_REMOVED",
+                    "MEMBER_ROLE_UPDATED"
                 ],
         },
 
