@@ -1,14 +1,20 @@
+import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import express from "express";
 import path from "path";
+import authRoutes from "./routes/auth.routes.js";
 
 const app = express();
 dotenv.config({ quiet: true });
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 app.use(express.static(path.join(process.cwd(), "public")));
+
+// Routes
+app.use("/api/auth", authRoutes);
 
 app.use((req, res) => {
     res.status(404).send("Server is Running But Page Not Found :) ");

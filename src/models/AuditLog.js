@@ -13,6 +13,7 @@ const auditLogSchema = new mongoose.Schema(
             type: String,
             required: true,
             enum: [
+                "USER_REGISTERED",
                 "USER_LOGIN",
                 "USER_LOGOUT",
                 "PASSWORD_CHANGED",
@@ -20,6 +21,7 @@ const auditLogSchema = new mongoose.Schema(
                 "ROLE_CHANGED",
                 "SESSION_CREATED",
                 "SESSION_REVOKED",
+                "TOKEN_REFRESHED",
             ],
         },
 

@@ -19,6 +19,12 @@ const sessionSchema = new mongoose.Schema({
         required: true,
     },
 
+    status: {
+        type: String,
+        enum: ["Online", "Offline", "Revoked"],
+        default: "Online",
+    },
+
     expiresAt: {
         type: Date,
         required: true,
@@ -30,6 +36,6 @@ const sessionSchema = new mongoose.Schema({
 },
 { timestamps: true, });
 
-sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+sessionSchema.index( { expireAfterSeconds: 0 });
 
 export default mongoose.model("Session", sessionSchema);

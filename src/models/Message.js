@@ -25,7 +25,7 @@ const messageSchema = new mongoose.Schema(
         attachments: [
             {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: "File",
+                ref: "File", //Model Create Hoga.
             },
         ],
 
