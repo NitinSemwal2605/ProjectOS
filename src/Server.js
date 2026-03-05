@@ -6,6 +6,9 @@ import redisClient from "./config/redis.js";
 import User from "./models/User.js";
 import { HashPassword } from "./utils/token.js";
 
+import { createServer } from "http";
+import { initSocket } from "./config/socket.js";
+
 dotenv.config({ quiet: true });
 const PORT = process.env.PORT || 5001;
 
@@ -18,7 +21,10 @@ const startServer = async () => {
             await redisClient.connect();
         }
 
-        app.listen(PORT, () => {
+        const server = createServer(app);
+        initSocket(server);
+
+        server.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
         });
 
