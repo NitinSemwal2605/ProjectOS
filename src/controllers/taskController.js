@@ -1,21 +1,30 @@
 import { getIO } from "../config/socket.js";
+import { invalidateCache } from "../middlewares/cache.middleware.js";
 import ActivityLog from "../models/ActivityLog.js";
 import Notification from "../models/Notification.js";
 import ProjectMember from "../models/ProjectMember.js";
 import Task from "../models/Task.js";
+
+const invalidateTaskCacheForProjectMembers = async (projectId) => {
+    const members = await ProjectMember.find({ projectId }).select("userId");
+    await Promise.all( //Parellel
+        members.map((m) => invalidateCache(m.userId, "task", projectId))
+    );
+};
 
 export const addTask = async (req, res) => {
     const { projectId, title, description, status, assigneeId, deadline } = req.body;
     const userId = req.user.id;
 
     try {
-        // Membership Check (Done by middleware, but adding fallback)
-        const member = await ProjectMember.findOne({ userId, projectId});
-        if (!member) {
-            return res.status(403).json({ message: "Only project members can add tasks" });
+
+        // Membership Check
+        const member = await ProjectMember.findOne({ userId, projectId });
+        if (!member || !["OWNER", "ADMIN"].includes(member.role)) {
+            return res.status(403).json({ message: "Only project owners or admins can add tasks" });
         }
 
-        // Also Check If Assignee Person Exists in DB !?
+        // Check If Assignee Person Exists in DB !?
         const assigneExists = await ProjectMember.findOne({ userId: assigneeId, projectId });
         if (assigneeId && !assigneExists) {
             return res.status(400).json({ message: "Assignee must be a member of the project" });
@@ -40,7 +49,7 @@ export const addTask = async (req, res) => {
         });
 
         // Notifications to all members except creator
-        const members = await ProjectMember.find({ projectId, userId: { $ne: userId } });
+        const members = await ProjectMember.find({ projectId, userId: { $ne: userId } }); // Get All Members Except Creator
         const notifications = members.map(m => ({
             userId: m.userId,
             projectId,
@@ -50,6 +59,9 @@ export const addTask = async (req, res) => {
         if (notifications.length > 0) {
             await Notification.insertMany(notifications);
         }
+
+        // Cache Implementations...
+        await invalidateTaskCacheForProjectMembers(projectId);
 
         // WebSocket Emit
         const io = getIO();
@@ -64,18 +76,17 @@ export const addTask = async (req, res) => {
 
 export const listTasks = async (req, res) => {
     const { projectId } = req.query;
-    const userId = req.user.id;
 
     try {
-        if (!projectId) {
-            return res.status(400).json({ message: "Project ID is required" });
-        }
-
+        const userId = req.user.id;
         const member = await ProjectMember.findOne({ userId, projectId });
         if (!member) {
-            return res.status(403).json({ message: "Access Denied" });
+            return res.status(403).json({ message: "Only project members can view tasks" });
         }
 
+        if (!projectId) {
+            return res.status(400).json({ message: "ProjectID is required" });
+        }
         const tasks = await Task.find({ projectId }).populate("assigneeId", "username email");
         res.json(tasks);
     } catch (error) {
@@ -84,9 +95,10 @@ export const listTasks = async (req, res) => {
     }
 };
 
-export const updateTask = async (req, res) => {
-    const { id } = req.params;
-    const updates = req.body;
+
+export const updateTaskDetails = async (req, res) => {
+    const { id } = req.params; // Task ID
+    const updates = req.body; // { title, description, assigneeId, deadline }
     const userId = req.user.id;
 
     try {
@@ -96,12 +108,12 @@ export const updateTask = async (req, res) => {
         }
 
         const projectId = task.projectId;
-        const member = await ProjectMember.findOne({ userId, projectId});
-        if (!member) {
-            return res.status(403).json({ message: "Access Denied" });
+        const member = await ProjectMember.findOne({ userId, projectId });
+
+        if (!member || !["OWNER", "ADMIN"].includes(member.role)) {
+            return res.status(403).json({ message: "Only owners or admins can update tasks" });
         }
 
-        // Track changes for logs and notifications
         const oldStatus = task.status;
         const oldAssignee = task.assigneeId?.toString();
 
@@ -109,43 +121,137 @@ export const updateTask = async (req, res) => {
         await task.save();
 
         let action = "TASK_UPDATED";
-        if (updates.status && updates.status !== oldStatus) {
-            action = updates.status === "DONE" ? "TASK_COMPLETED" : "TASK_UPDATED";
-        } else if (updates.assigneeId && updates.assigneeId?.toString() !== oldAssignee) {
+
+        if(updates.status && updates.status !== oldStatus) {
+            if(updates.status === "DONE") {
+                action = "TASK_COMPLETED";
+            }
+            else{
+                action = "TASK_UPDATED";
+            }
+        }
+
+        if (updates.assigneeId && updates.assigneeId?.toString() !== oldAssignee) {
             action = "TASK_ASSIGNED";
         }
 
-        // Activity Log
         await ActivityLog.create({
             userId,
             projectId,
             action,
             entityType: "TASK",
-            entityId: task._id,
+            entityId: task._id
         });
 
-        // Notifications
-        const members = await ProjectMember.find({ projectId, isDeleted: false, userId: { $ne: userId } });
+        const members = await ProjectMember.find({
+            projectId,
+            userId: { $ne: userId }
+        });
+
         const notifications = members.map(m => ({
             userId: m.userId,
             projectId,
-            message: `Task updated: "${task.title}" (Action: ${action})`,
+            message: `Task updated: "${task.title}" (Action: ${action})`
         }));
-        if (notifications.length > 0) {
+
+        if (notifications.length) {
             await Notification.insertMany(notifications);
         }
 
-        // WebSocket Emit
+        // Cache Implementations...
+        await invalidateTaskCacheForProjectMembers(projectId);
+
         const io = getIO();
         io.to(`project:${projectId}`).emit("TASK_UPDATED", { task, action });
 
         res.json({ message: "Task updated successfully", task });
+
     } catch (error) {
         console.error("Update Task Error:", error);
         res.status(500).json({ message: "Internal server error while updating task" });
     }
 };
 
+// Only Assignee can update the Task Status.
+export const updateTaskStatus = async (req, res) => {
+    const { id } = req.params; // Task ID
+    const { status } = req.body;
+    const userId = req.user.id;
+
+    try {
+        if (!status) {
+            return res.status(400).json({ message: "Status is required" });
+        }
+
+        const task = await Task.findById(id);
+        if (!task) {
+            return res.status(404).json({ message: "Task not found" });
+        }
+
+        const projectId = task.projectId;
+        const oldStatus = task.status;
+
+        // Only Assignee can update the Task Status.
+        if (task.assigneeId?.toString() !== userId) {
+            return res.status(403).json({ message: "Only the assignee can update the task status" });
+        }
+
+        task.status = status;
+        await task.save();
+
+        let action; //CHECK
+        if(status === "DONE" && oldStatus !== "DONE") {
+            action = "TASK_COMPLETED";
+        }
+        else{
+            action = "TASK_STATUS_UPDATED";
+        }
+
+        // Log Created
+        await ActivityLog.create({
+            userId,
+            projectId,
+            action,
+            entityType: "TASK",
+            entityId: task._id
+        });
+
+        const members = await ProjectMember.find({
+            projectId,
+            userId: { $ne: userId }
+        });
+
+        const notifications = members.map(m => ({
+            userId: m.userId,
+            projectId,
+            message: `Task status updated: "${task.title}" → ${status}`
+        }));
+
+        if (notifications.length) {
+            await Notification.insertMany(notifications);
+        }
+
+        // Cache Implementations...
+        await invalidateTaskCacheForProjectMembers(projectId);
+
+        const io = getIO();
+        io.to(`project:${projectId}`).emit("TASK_STATUS_UPDATED", { task });
+
+        res.json({
+            message: "Task status updated successfully",
+            task
+        });
+
+    } catch (error) {
+        console.error("Update Status Error:", error);
+        res.status(500).json({
+            message: "Internal server error while updating task status"
+        });
+    }
+};
+
+
+// Implement the Assigned Tasks Routes.
 export const deleteTask = async (req, res) => {
     const { id } = req.params;
     const userId = req.user.id;
@@ -157,9 +263,11 @@ export const deleteTask = async (req, res) => {
         }
 
         const projectId = task.projectId;
-        const member = await ProjectMember.findOne({ userId, projectId, isDeleted: false });
-        if (!member || member.role !== "OWNER") {
-            return res.status(403).json({ message: "Only project owners can delete tasks" });
+
+        // Only Owner , Admin Can Delete
+        const member = await ProjectMember.findOne({ userId, projectId });
+        if (!member || !["OWNER", "ADMIN"].includes(member.role)) {
+            return res.status(403).json({ message: "Only owners or admins can delete tasks" });
         }
 
         await Task.findByIdAndDelete(id);
@@ -172,6 +280,9 @@ export const deleteTask = async (req, res) => {
             entityType: "TASK",
             entityId: id,
         });
+
+        // Cache Implementations...
+        await invalidateTaskCacheForProjectMembers(projectId);
 
         // WebSocket Emit
         const io = getIO();

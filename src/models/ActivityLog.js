@@ -27,6 +27,8 @@ const activityLogSchema = new mongoose.Schema(
                     "TASK_CREATED",
                     "TASK_UPDATED",
                     "TASK_DELETED",
+                    "TASK_COMPLETED",
+                    "TASK_STATUS_UPDATED",
                     "MESSAGE_SENT",
                     "MESSAGE_EDITED",
                     "MESSAGE_DELETED",

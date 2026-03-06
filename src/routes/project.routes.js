@@ -10,7 +10,6 @@ import { cache } from "../middlewares/cache.middleware.js";
 import { isProjectMember, isProjectOwner } from "../middlewares/rbac.middleware.js";
 
 const router = express.Router();
-
 router.use(authMiddleware);
 
 // Project CRUD

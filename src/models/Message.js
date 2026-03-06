@@ -25,7 +25,7 @@ const messageSchema = new mongoose.Schema(
         attachments: [
             {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: "File", //Model Create Hoga.
+                ref: "File",
             },
         ],
 
@@ -40,7 +40,9 @@ const messageSchema = new mongoose.Schema(
             index: true,
         },
     },
-    { timestamps: { createdAt: true, updatedAt: false }, }
+    { timestamps: true, }
 );
+
+messageSchema.index({ projectId: 1, createdAt: -1 });
 
 export default mongoose.model("Message", messageSchema);

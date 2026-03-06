@@ -1,8 +1,9 @@
 import { Server } from "socket.io";
-import { socketAuthMiddleware } from "../middlewares/socketAuth.middleware.js";
+import ProjectMember from "../models/ProjectMember.js";
+import { registerChatHandlers } from "../socket/chatHandler.js";
+import { socketAuthMiddleware } from "../socket/socketAuth.middleware.js";
 
 let io;
-
 export const initSocket = (server) => {
     io = new Server(server, {
         cors: {
@@ -11,25 +12,31 @@ export const initSocket = (server) => {
     });
 
     io.use(socketAuthMiddleware);
+    
+    io.on("connection", async (socket) => {
+        const userId = socket.user.id;
+        console.log(`Socket Connected: ${socket.id} (User: ${userId})`);
 
-    io.on("connection", (socket) => {
-        console.log(`Socket Connected: ${socket.id} (User: ${socket.user?.id})`);
+        try {
+            // Join personal room
+            socket.join(`user:${userId}`);
+            console.log(`User ${userId} joined notification room: user:${userId}`);
 
-        // Join personal room
-        if (socket.user?.id) {
-            socket.join(`user:${socket.user.id}`);
+            // Join All Project Rooms of User
+            const memberships = await ProjectMember.find({ userId });
+            memberships.forEach((membership) => {
+                const room = `project:${membership.projectId}`;
+                console.log("Joining room:", room);
+                socket.join(room);
+                console.log(`User ${userId} joined project room: ${room}`);
+            });
+
+            // Register Chat Handlers
+            registerChatHandlers(io, socket);
+
+        } catch (error) {
+            console.error("Error in socket connection setup:", error);
         }
-
-        // Handle joining project rooms
-        socket.on("joinProject", (projectId) => {
-            socket.join(`project:${projectId}`);
-            console.log(`User ${socket.user.id} joined project room: project:${projectId}`);
-        });
-
-        socket.on("leaveProject", (projectId) => {
-            socket.leave(`project:${projectId}`);
-            console.log(`User ${socket.user.id} left project room: project:${projectId}`);
-        });
 
         socket.on("disconnect", () => {
             console.log(`Socket Disconnected: ${socket.id}`);

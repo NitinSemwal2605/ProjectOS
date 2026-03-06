@@ -25,6 +25,7 @@ export const isProjectOwner = async (req,res,next) =>{
     }
 }
 
+// All project members (OWNER, ADMIN, MEMBER) can access routes protected by this middleware
 export const isProjectMember = async (req,res,next) =>{
     try{
         const userId = req.user.id;
