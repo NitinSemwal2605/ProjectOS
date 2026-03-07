@@ -1,34 +1,34 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const projectMemberSchema = new mongoose.Schema(
-    {
-        projectId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Project",
-            required: true,
-            index: true,
-        },
-
-        userId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
-            index: true,
-        },
-
-        role: {
-            type: String,
-            enum: ["OWNER", "MEMBER"],
-            default: "MEMBER",
-        },
-
-        joinedAt: {
-            type: Date,
-            default: Date.now,
-        },
+  {
+    projectId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Project',
+      required: true,
+      index: true,
     },
-    { timestamps: false, }
+
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true,
+    },
+
+    role: {
+      type: String,
+      enum: ['OWNER', 'MEMBER'],
+      default: 'MEMBER',
+    },
+
+    joinedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { timestamps: false },
 );
 
 projectMemberSchema.index({ projectId: 1, userId: 1 }, { unique: true });
-export default mongoose.model("ProjectMember", projectMemberSchema);
+export default mongoose.model('ProjectMember', projectMemberSchema);

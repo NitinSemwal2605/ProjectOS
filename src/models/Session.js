@@ -1,41 +1,43 @@
-import mongoose from "mongoose";
-import { v4 as uuidv4 } from "uuid";
+import mongoose from 'mongoose';
+import { v4 as uuidv4 } from 'uuid';
 
-const sessionSchema = new mongoose.Schema({
+const sessionSchema = new mongoose.Schema(
+  {
     _id: {
-        type: String,
-        default: uuidv4,
+      type: String,
+      default: uuidv4,
     },
 
     userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true,
-        index: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true,
     },
 
     refreshToken: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
 
     status: {
-        type: String,
-        enum: ["Online", "Offline", "Revoked"],
-        default: "Online",
+      type: String,
+      enum: ['Online', 'Offline', 'Revoked'],
+      default: 'Online',
     },
 
     expiresAt: {
-        type: Date,
-        required: true,
-        index: true,
+      type: Date,
+      required: true,
+      index: true,
     },
 
     ipAddress: String,
     userAgent: String,
-},
-{ timestamps: true, });
+  },
+  { timestamps: true },
+);
 
-sessionSchema.index( { expireAfterSeconds: 0 });
+sessionSchema.index({ expireAfterSeconds: 0 });
 
-export default mongoose.model("Session", sessionSchema);
+export default mongoose.model('Session', sessionSchema);
