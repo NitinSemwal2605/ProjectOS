@@ -6,11 +6,12 @@ import ProjectMember from '../models/ProjectMember.js';
 import User from '../models/User.js';
 import { parseMentions } from '../utils/mention.utils.js';
 
-export const saveMessage = async (projectId, senderId, content) => {
+export const saveMessage = async (projectId, senderId, content, attachments = []) => {
   const message = await Message.create({
     projectId,
     senderId,
     content,
+    attachments,
   });
 
   await ActivityLog.create({

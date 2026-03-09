@@ -1,4 +1,6 @@
+import File from '../models/File.js';
 import * as messageService from '../service/messageService.js';
+import { uploadToCloudinary } from '../utils/cloudinary.utils.js';
 
 export const registerChatHandlers = (io, socket) => {
   // chat:send event
@@ -18,11 +20,37 @@ export const registerChatHandlers = (io, socket) => {
         return;
       }
 
+      // Process Attachments if any
+      const attachmentIds = [];
+      if (data.attachments && Array.isArray(data.attachments)) {
+        for (const fileData of data.attachments) {
+          // It must have base64 data for upload
+          if(!fileData.base64) {
+            console.log('Attachment skipped due to missing base64 data:', fileData);
+            continue;
+          }
+          const uploadResult = await uploadToCloudinary(fileData.base64);
+          
+          const fileRecord = await File.create({
+            projectId,
+            uploadedBy: socket.user.id,
+            originalName: fileData.originalName || 'unnamed',
+            storageName: uploadResult.public_id,
+            url: uploadResult.secure_url,
+            mimeType: fileData.mimeType || uploadResult.format,
+            size: fileData.size || uploadResult.bytes,
+          });
+          
+          attachmentIds.push(fileRecord._id);
+        }
+      }
+
       // Save message to DB
       const message = await messageService.saveMessage(
         projectId,
         socket.user.id,
         content,
+        attachmentIds,
       );
       // console.log(message)
       
