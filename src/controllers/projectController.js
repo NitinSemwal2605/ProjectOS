@@ -65,7 +65,7 @@ export const addProject = async (req, res) => {
 
     res.status(201).json({ message: 'Project created Successfully', project });
   } catch (error) {
-    console.log('Error Occured While Adding Projects');
+    console.log('Error occurred While Adding Projects');
     res
       .status(500)
       .json({ message: 'Internal server error while creating project' });
@@ -93,7 +93,7 @@ export const listAllProjects = async (req, res) => {
 
     res.json(projects);
   } catch (error) {
-    console.log('Error Occured While Listing Projects');
+    console.log('Error occurred While Listing Projects');
     res
       .status(500)
       .json({ message: 'Internal server error while listing All Project' });
@@ -121,7 +121,7 @@ export const listProjectById = async (req, res) => {
 
     res.json(project);
   } catch (error) {
-    console.log('Error Occured While Fetching Project by ID');
+    console.log('Error occurred While Fetching Project by ID');
     res
       .status(500)
       .json({ message: 'Internal server error while listing this project' });
@@ -195,7 +195,7 @@ export const updateProject = async (req, res) => {
 
     res.json({ message: 'Project updated successfully', project });
   } catch (error) {
-    console.log('Error Occured While Updating Project');
+    console.log('Error occurred While Updating Project');
     res
       .status(500)
       .json({ message: 'Internal server error while updating project' });
@@ -260,7 +260,7 @@ export const deleteProject = async (req, res) => {
 
     res.json({ message: 'Project deleted successfully' });
   } catch (error) {
-    console.log('Error Occured While Deleting Project');
+    console.log('Error occurred While Deleting Project');
     res
       .status(500)
       .json({ message: 'Internal server error while deleting project' });
@@ -290,7 +290,7 @@ export const getMembers = async (req, res) => {
   }
 };
 
-
+// Add multiple members to a project (only owners can add)
 export const addMember = async (req, res) => {
   const { id: projectId } = req.params;
   const { members } = req.body;
@@ -301,7 +301,7 @@ export const addMember = async (req, res) => {
     }
 
     const requestingUserId = req.user.id;
-    // If user not Admin 
+    // If user not Admin
     if (!req.user.isAdmin) {
       const requester = await ProjectMember.findOne({
         projectId,
@@ -335,6 +335,7 @@ export const addMember = async (req, res) => {
         continue;
       }
 
+      // Reactivate User
       if (existingMember && existingMember.isDeleted) {
         existingMember.isDeleted = false;
         if (role) existingMember.role = role;
@@ -404,6 +405,7 @@ export const addMember = async (req, res) => {
   }
 };
 
+// Remove members from a project (only owners can remove)
 export const removeMember = async (req, res) => {
   const { id: projectId } = req.params;
   const { members } = req.body;
@@ -564,7 +566,7 @@ export const updateMemberRole = async (req, res) => {
 
     res.json({ message: 'Member role updated successfully', member });
   } catch (error) {
-    console.log('Error Occured While Updating Member Role : ', error);
+    console.log('Error occurred While Updating Member Role : ', error);
     res
       .status(500)
       .json({ message: 'Internal server error while updating member role' });

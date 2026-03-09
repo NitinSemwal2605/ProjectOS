@@ -17,7 +17,6 @@ const auditLogSchema = new mongoose.Schema(
         'USER_LOGIN',
         'USER_LOGOUT',
         'PASSWORD_CHANGED',
-        'PROJECT_DELETED',
         'ROLE_CHANGED',
         'SESSION_CREATED',
         'SESSION_REVOKED',
