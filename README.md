@@ -14,15 +14,36 @@ Built with modern technologies, it offers a robust backend for real-time collabo
 
 ---
 
-## 🌟 Key Features
+## 🚀 Core Features (Detailed)
 
-- **🛡️ Secure Authentication**: JWT-based auth with access and refresh tokens.
-- **📂 Project Management**: Create, update, and manage project-specific workflows.
-- **✅ Task Tracking**: Detailed task management within project contexts.
-- **💬 Real-time Chat**: Project-specific chat rooms using Socket.io for instant communication.
-- **📊 Activity Logs**: Automatic logging of project and task activities.
-- **📖 API Documentation**: Interactive API exploration with Swagger UI.
-- **🚦 Security**: Rate limiting, data validation, and secure password hashing.
+### � Authentication & Security
+- **JWT-Based Auth**: Secure session management using Access and Refresh tokens.
+- **Role-Based Access**: Granular control for different user roles within projects.
+- **Rate Limiting**: Integrated **Redis** for efficient rate limiting to prevent brute-force attacks.
+- **Password Safety**: Industry-standard encryption using `bcrypt` for all user credentials.
+
+### 📂 Project Management
+- **Full CRUD Support**: Seamlessly create, update, and manage project lifecycles.
+- **Member Collaboration**: Add and remove members to projects with ease.
+- **Activity Tracking**: Real-time logging of project-related activities to keep teams informed.
+- **Scoped Rooms**: Automatic creation of project-specific communication channels via Socket.io.
+
+### ✅ Task Tracking System
+- **Dynamic Task Assignment**: Assign tasks to multiple project members with clear ownership.
+- **Priority & Status**: Categorize tasks by priority and track progress through customizable states.
+- **Smart Updates**: Real-time status synchronization across all connected team members.
+- **History Logs**: Detailed trail of task modifications, including assignee and status changes.
+
+### 💬 Real-time Communication
+- **Project-Specific Chat**: Secure messaging within project rooms using Socket.io.
+- **History Retrieval**: Efficient loading of chat history with pagination for optimized performance.
+- **Real-time Indicators**: Visual cues for typing status (`typing:start`, `typing:stop`).
+- **Message Management**: Support for editing and soft-deleting messages with historical transparency.
+
+### � API Documentation & Monitoring
+- **Interactive Swagger Docs**: Fully documented REST API endpoints for easy testing and integration.
+- **Centralized Validation**: Robust input sanitization and schema validation using **Joi**.
+- **Error Handling**: Unified error management for consistent and helpful API responses.
 
 ---
 
