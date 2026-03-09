@@ -20,7 +20,6 @@ Built with modern technologies, it offers a robust backend for real-time collabo
 ### 🔐 Authentication & Security
 - **JWT-Based Auth**: Secure session management using Access and Refresh tokens.
 - **Role-Based Access**: Granular control for different user roles within projects.
-- **Rate Limiting**: Integrated **Redis** for efficient rate limiting to prevent brute-force attacks.
 - **Password Safety**: Industry-standard encryption using `bcrypt` for all user credentials.
 
 ### 📂 Project Management
@@ -31,7 +30,6 @@ Built with modern technologies, it offers a robust backend for real-time collabo
 
 ### ✅ Task Tracking System
 - **Dynamic Task Assignment**: Assign tasks to multiple project members with clear ownership.
-- **Priority & Status**: Categorize tasks by priority and track progress through customizable states.
 - **Smart Updates**: Real-time status synchronization across all connected team members.
 - **History Logs**: Detailed trail of task modifications, including assignee and status changes.
 
