@@ -298,6 +298,18 @@ Since Cloudinary's `resource_type: 'auto'` is used, the following file categorie
 | **Archives** | ZIP, RAR, 7Z, TAR.GZ |
 | **Audio** | MP3, WAV, OGG, FLAC |
 
+### 🗜️ Auto-Compression Cron Job (Storage Optimization)
+
+To optimize Cloudinary storage over time, ProjectOS includes an automated background job (`node-cron`) that compresses older media files.
+
+- **Schedule**: Runs automatically every day at `2:00 AM`.
+- **Target**: Finds image and video files older than **1 month** that haven't been compressed yet.
+- **Process**:
+  1. Re-uploads the asset to Cloudinary with `quality: 'auto:low'` and `fetch_format: 'auto'`.
+  2. Deletes the old, uncompressed original asset to save space.
+  3. Updates the `File` document in MongoDB with the new `secure_url`, `size`, and flags it with `isCompressed: true`.
+- **Exclusions**: Raw files (documents like PDFs, ZIPs) are flagged and skipped, since Cloudinary transformations only apply to visual/audio media.
+
 ---
 
 ## 📂 Project Structure

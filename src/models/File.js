@@ -39,6 +39,10 @@ const fileSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    isCompressed: {
+      type: Boolean,
+      default: false,
+    },
     deletedAt: {
       type: Date,
       default: null,

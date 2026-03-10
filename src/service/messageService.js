@@ -13,7 +13,7 @@ export const saveMessage = async (projectId, senderId, content, attachments = []
     content,
     attachments,
   });
-
+  
   await ActivityLog.create({
     userId: senderId,
     projectId,
